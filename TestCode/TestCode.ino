@@ -9,6 +9,9 @@ const int button3 = 4;  // the number of the pushbutton pin
 const int button4 = 5;  // the number of the pushbutton pin
 const int ledPin = 7;  // the number of the LED pin
 
+int x = 0;
+int y = 0;
+
 #define cs 10
 #define dc 9
 #define rst 8
@@ -22,20 +25,20 @@ const uint16_t palette[4] PROGMEM = {
   0x31A6, 0x7BCF, 0x3D6D, 0xDEB6 //black, grey, green, bej
 };
 
-TFT TFTscreen = TFT(cs, dc, rst);
+TFT TFTScreen = TFT(cs, dc, rst);
 
-void loadImage(uint16_t image[16 * 16]) {
-  for (int i = 0; i < 16; i++) {
-    for (int j = 0; j < 16; j++) {
-      uint16_t color = pgm_read_word(&(image[i * 16 + j]));
-      TFTscreen.drawPixel(j, i, color);
-    }
+void load16x16Image(int x, int y, const uint16_t image[16*16]) {
+  // set TFT cursor to top-left corner of the image
+  TFTScreen.setAddrWindow(x, y, x + 15, y + 15);  // x0,y0,x1,y1
+
+  for (int i = 0; i < 16 * 16; i++) {
+    uint16_t color = pgm_read_word(&(image[i]));  
+    TFTScreen.pushColor(color);                   
   }
 }
 
 
 void setup() {
-
 
   // initialize the LED pin as an output:
   pinMode(ledPin, OUTPUT);
@@ -45,12 +48,16 @@ void setup() {
   pinMode(button3, INPUT);
   pinMode(button4, INPUT);
 
-  //initialize the library
-  TFTscreen.begin();
-
-  TFTscreen.setRotation(3);
-  // clear the screen with a black background
+  // initialize the library
+  TFTScreen.begin();
+  TFTScreen.setRotation(3);
   
+  // IF YOU WANT TO RENDER ANYTHING ON THE DISPLAY DO IT AFTER THIS LINE
+  // clear the screen with a black background
+  TFTScreen.fillScreen(0x0000);
+  load16x16Image(x, y, testSprite);
+
+
 }
 
 
@@ -62,8 +69,25 @@ void loop() {
   buttonState3 = digitalRead(button3); // down
   buttonState4 = digitalRead(button4); // up
 
-  if(buttonState1 == HIGH) {
-    loadImage(testSprite);
+  if(buttonState1 == LOW) {
+    x+=16;
+    TFTScreen.fillScreen(0x0000);
+    load16x16Image(x, y, testSprite);
+  }
+  if(buttonState2 == LOW) {
+    x-=16;
+    TFTScreen.fillScreen(0x0000);
+    load16x16Image(x, y, testSprite);
+  }
+  if(buttonState3 == LOW) {
+    y-=16;
+    TFTScreen.fillScreen(0x0000);
+    load16x16Image(x, y, testSprite);
+  }
+  if(buttonState4 == LOW) {
+    y+=16;
+    TFTScreen.fillScreen(0x0000);
+    load16x16Image(x, y, testSprite);
   }
 
   delay(100); // debounce & slow down movement a little
