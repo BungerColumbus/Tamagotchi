@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
-extern const uint16_t testSprite[16 * 16];
+extern const uint16_t testSprite[];
+extern const uint16_t goober[];
+extern const uint16_t castle[];
 
 #endif

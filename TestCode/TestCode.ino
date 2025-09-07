@@ -21,19 +21,32 @@ int buttonState2 = 0;
 int buttonState3 = 0;
 int buttonState4 = 0;
 
+uint16_t TRANSPARENT = 0xffff;
+
 const uint16_t palette[4] PROGMEM = {
   0x31A6, 0x7BCF, 0x3D6D, 0xDEB6 //black, grey, green, bej
 };
 
 TFT TFTScreen = TFT(cs, dc, rst);
 
-void load16x16Image(int x, int y, const uint16_t image[16*16]) {
+void loadBigImage(int x, int y, const uint16_t *image, int w, int h) {
   // set TFT cursor to top-left corner of the image
-  TFTScreen.setAddrWindow(x, y, x + 15, y + 15);  // x0,y0,x1,y1
+  TFTScreen.setAddrWindow(x, y, x + w-1, y + h-1);  // x0,y0,x1,y1
 
-  for (int i = 0; i < 16 * 16; i++) {
-    uint16_t color = pgm_read_word(&(image[i]));  
+  for (int i = 0; i < w * h; i++) {
+    uint16_t color = pgm_read_word(&(image[i]));
     TFTScreen.pushColor(color);                   
+  }
+}
+
+void loadSmallImage(int x, int y, const uint16_t *image, uint16_t transparent, int length) {
+  for (int i = 0; i < length; i++) {
+    for (int j = 0; j < length; j++) {
+      uint16_t color = pgm_read_word(&(image[i * length + j]));
+      if (color != transparent) {
+        TFTScreen.drawPixel(x + j, y + i, color);
+      }
+    }
   }
 }
 
@@ -54,8 +67,9 @@ void setup() {
   
   // IF YOU WANT TO RENDER ANYTHING ON THE DISPLAY DO IT AFTER THIS LINE
   // clear the screen with a black background
-  TFTScreen.fillScreen(0x0000);
-  load16x16Image(x, y, testSprite);
+  TFTScreen.fillScreen(0xffff);
+  loadBigImage(0, 0, castle, 64, 64);
+  loadSmallImage(x, y, goober, TRANSPARENT, 16);
 
 
 }
@@ -71,23 +85,27 @@ void loop() {
 
   if(buttonState1 == LOW) {
     x+=16;
-    TFTScreen.fillScreen(0x0000);
-    load16x16Image(x, y, testSprite);
+    TFTScreen.fillScreen(0xffff);
+    loadBigImage(0, 0, castle, 64, 64);
+    loadSmallImage(x, y, goober, TRANSPARENT, 16);
   }
   if(buttonState2 == LOW) {
     x-=16;
-    TFTScreen.fillScreen(0x0000);
-    load16x16Image(x, y, testSprite);
+    TFTScreen.fillScreen(0xffff);
+    loadBigImage(0, 0, castle, 64, 64);
+    loadSmallImage(x, y, goober, TRANSPARENT, 16);
   }
   if(buttonState3 == LOW) {
     y-=16;
-    TFTScreen.fillScreen(0x0000);
-    load16x16Image(x, y, testSprite);
+    TFTScreen.fillScreen(0xffff);
+    loadBigImage(0, 0, castle, 64, 64);
+    loadSmallImage(x, y, goober, TRANSPARENT, 16);
   }
   if(buttonState4 == LOW) {
     y+=16;
-    TFTScreen.fillScreen(0x0000);
-    load16x16Image(x, y, testSprite);
+    TFTScreen.fillScreen(0xffff);
+    loadBigImage(0, 0, castle, 64, 64);
+    loadSmallImage(x, y, goober, TRANSPARENT, 16);
   }
 
   delay(100); // debounce & slow down movement a little
