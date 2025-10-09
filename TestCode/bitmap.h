@@ -6,5 +6,6 @@
 extern const uint16_t testSprite[];
 extern const uint16_t goober[];
 extern const uint16_t castle[];
+extern const uint8_t smallMemoryUsage[];
 
 #endif
