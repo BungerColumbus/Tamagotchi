@@ -1,6 +1,6 @@
-## Getting Started
+## Purpose
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+To transform images into text such that i don't have to write them manually.
 
 ## Folder Structure
 
@@ -11,8 +11,6 @@ The workspace contains two folders by default, where:
 
 Meanwhile, the compiled output files will be generated in the `bin` folder by default.
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+There is a main class which runs the Jframe
+A frame class which is... well the Jframe you dum dum
+A panel class which is where everything runs and makes the magic happen. I am too lazy to explain it all. Read through it as it is pretty intuitive. It's java, not assembly.
