@@ -53,15 +53,15 @@ void loadSmallImage(int x, int y, const uint16_t *image, uint16_t transparent, i
 
 void loadXbitColorImage(int x, int y, const uint8_t *image, int length) {
   uint16_t color;
-  for (int i = 0; i < length * 2; i++) {      // 8*2 = 16 pixels high
-    for (int j = 0; j < length * 2; j++) {    // 8*2 = 16 pixels wide
-      uint8_t byte = pgm_read_byte(&image[(i / 4) * length + (j / 4)]);
-      uint8_t pix = (byte >> (2 * (3 - (j % 4)))) & 0x03;
+  for (int i = 0; i < length * 4; i++) {
+    for (int j = 0; j < length * 4; j++) {
+      uint8_t byte = pgm_read_byte(&image[(i * length + (j / 4))]);
+      uint8_t pix = (byte >> (2 * (3 - j % 4))) & 0x03;
 
-      if (pix == 3) color = 0x001F;
+      if (pix == 3) color = 0x1111;
       else if (pix == 2) color = 0x0000;
       else if (pix == 1) color = 0xFFFF;
-      else color = 0x07E0;
+      else color = 0x1111;
 
       TFTScreen.drawPixel(x + j, y + i, color);
     }
@@ -91,7 +91,7 @@ void setup() {
   //loadBigImage(0, 0, castle, 64, 64);
   //loadBigImage(0, 64, castle, 64, 64);
   //loadBigImage(64, 64, castle, 64, 64);
-  loadXbitColorImage(x, y, smallMemoryUsage, 8);
+  loadXbitColorImage(x, y, smallMemoryUsage, 4);
 
 
 }
@@ -108,17 +108,17 @@ void loop() {
   if(buttonState1 == LOW) {
     x+=16;
     TFTScreen.fillScreen(0xffff);
-    loadXbitColorImage(x, y, smallMemoryUsage, 8);
+    loadXbitColorImage(x, y, smallMemoryUsage, 4);
   }
   if(buttonState2 == LOW) {
     x-=16;
     TFTScreen.fillScreen(0xffff);
-    loadXbitColorImage(x, y, smallMemoryUsage, 8);
+    loadXbitColorImage(x, y, smallMemoryUsage, 4);
   }
   if(buttonState3 == LOW) {
     y-=16;
     TFTScreen.fillScreen(0xffff);
-    loadXbitColorImage(x, y, smallMemoryUsage, 8);
+    loadXbitColorImage(x, y, smallMemoryUsage, 4);
   }
   if(buttonState4 == LOW) {
     y+=16;
