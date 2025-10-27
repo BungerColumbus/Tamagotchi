@@ -1,3 +1,1 @@
-This is not yet finished.
-
-My purpose right now is to find why is the thing not drawing the pixels properly.
+I have switched from Arduino Nano to Raspberry Pi Pico 2. Because of that I shall open a new repo

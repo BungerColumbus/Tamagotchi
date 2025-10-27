@@ -98,6 +98,8 @@ void setup() {
 
 
 
+
+
 void loop() {
   // read the state of the pushbutton value:
   buttonState1 = digitalRead(button1); // left
@@ -105,26 +107,43 @@ void loop() {
   buttonState3 = digitalRead(button3); // down
   buttonState4 = digitalRead(button4); // up
 
+  x = x % 160;
+  y = y % 100;
   if(buttonState1 == LOW) {
-    x+=16;
+    x+=8;
+
+    if (160 < x)
+      x = 0;
+    
     TFTScreen.fillScreen(0xffff);
     loadXbitColorImage(x, y, smallMemoryUsage, 4);
   }
   if(buttonState2 == LOW) {
-    x-=16;
+    x-=8;
+
+    if (x < 0)
+      x = 144;
+    
     TFTScreen.fillScreen(0xffff);
     loadXbitColorImage(x, y, smallMemoryUsage, 4);
   }
   if(buttonState3 == LOW) {
-    y-=16;
+    y-=8;
+
+    if (y < -16)
+      y = 84;
+    
     TFTScreen.fillScreen(0xffff);
     loadXbitColorImage(x, y, smallMemoryUsage, 4);
   }
   if(buttonState4 == LOW) {
-    y+=16;
+    y+=8;
+
+    if (100 < y)
+      y = 0;
+
     TFTScreen.fillScreen(0xffff);
     loadXbitColorImage(x, y, smallMemoryUsage, 4);
   }
 
-  delay(100); // debounce & slow down movement a little
 }
