@@ -28,35 +28,42 @@ set(PICO_BOARD pico2 CACHE STRING "Board type")
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(ST7735_image_display C CXX ASM)
+project(main C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+add_subdirectory(lib/fatfs_sd build)
+
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(ST7735_image_display ST7735_image_display.c )
+add_executable(main main.c images.c
+                hw_config.c
+                display_config.c
+                sd_commands.c)
 
-pico_set_program_name(ST7735_image_display "ST7735_image_display")
-pico_set_program_version(ST7735_image_display "0.1")
+pico_set_program_name(main "main")
+pico_set_program_version(main "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(ST7735_image_display 0)
-pico_enable_stdio_usb(ST7735_image_display 1)
+pico_enable_stdio_uart(main 0)
+pico_enable_stdio_usb(main 1)
 
 # Add the standard library to the build
-target_link_libraries(ST7735_image_display
-        pico_stdlib)
+target_link_libraries(main
+        pico_stdlib
+        hardware_spi
+        no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
+        )
 
 # Add the standard include files to the build
-target_include_directories(ST7735_image_display PRIVATE
+target_include_directories(main PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
-# Add any user requested libraries
-target_link_libraries(ST7735_image_display 
-        hardware_spi
-        )
 
-pico_add_extra_outputs(ST7735_image_display)
 
+pico_enable_stdio_usb(main 1)
+pico_enable_stdio_uart(main 0)
+
+pico_add_extra_outputs(main)
