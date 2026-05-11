@@ -5,31 +5,6 @@
 #include "images.h"
 #include "display_config.h"
 
-// ST7735 commands
-#define ST7735_SWRESET 0x01 // Software Reset (reset the display)
-#define ST7735_SLPOUT 0x11  // Sleep Out (exit sleep mode)
-#define ST7735_COLMOD 0x3A  // Colour Mode (use to set the colour mode)
-#define ST7735_MADCTL 0x36  // Memory Access Data Control (rotation, mirroring, RGB/BGR order)
-#define ST7735_DISPON 0x29  // Display On
-#define ST7735_CASET 0x2A   // Column Address Set (x coordinate)
-#define ST7735_RASET 0x2B   // Row Address Set (y coordinate)
-#define ST7735_RAMWR 0x2C   // RAM Write (you use this to tell the SPI that the following bytes are data for pixels)
-
-// SPI (Serial Peripheral Interface) is the way the Pico communicates with the display
-
-// pin definitions
-#define PIN_CS 5   // Chip Select
-#define PIN_DC 4   // GPIO
-#define PIN_RST 6  // Reset
-#define PIN_MOSI 3 // Master Out Slave in, The data from the master goes to the slave
-#define PIN_SCK 2  // Serial Clock (to synchronize the devices)
-#define PIN_BL 0   // It's the LED pin
-
-// display size
-#define TFT_WIDTH 128
-#define TFT_HEIGHT 160
-// tell the display what to do.
-
 static void st7735_write_command(uint8_t cmd)
 {
     gpio_put(PIN_DC, 0);               // the byte is an instruction (e.g., “write pixels,” “set column range”).
@@ -85,7 +60,7 @@ void st7735_init(void)
 
     // memory access control (orientation)
     st7735_write_command(ST7735_MADCTL);
-    uint8_t madctl_data = 0x68;
+    uint8_t madctl_data = 0x08;
     st7735_write_data(&madctl_data, 1);
 
     // turn on display
@@ -96,12 +71,12 @@ void st7735_init(void)
 void st7735_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
 {
     // Setting the address for the rows
-    st7735_write_command(ST7735_RASET);
+    st7735_write_command(ST7735_CASET);
     uint8_t caset_data[] = {x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF};
     st7735_write_data(caset_data, sizeof(caset_data));
 
     // Setting the address for the columns
-    st7735_write_command(ST7735_CASET);
+    st7735_write_command(ST7735_RASET);
     uint8_t raset_data[] = {y0 >> 8, y0 & 0xFF, y1 >> 8, y1 & 0xFF};
     st7735_write_data(raset_data, sizeof(raset_data));
 
@@ -111,12 +86,13 @@ void st7735_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
     st7735_write_command(ST7735_RAMWR);
 }
 
-void display_image(const uint16_t *image)
+void display_image(const uint16_t *image, uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y)
 {
-    st7735_set_window(0, 0, TFT_WIDTH - 1, TFT_HEIGHT - 1);
+    st7735_set_window(start_x, start_y, end_x, end_y);
     // send image data as bytes (RGB565)
     // convert uint16_t array to uint8_t buffer if necessary
     uint8_t *p = (uint8_t *)image;
     size_t bytes = TFT_WIDTH * TFT_HEIGHT * 2;
+
     st7735_write_data(p, bytes);
 }

@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hw_config.h"
+#include "images.h"
 #include "ff.h"
 #include "f_util.h"
 
@@ -94,4 +96,119 @@ void read_from_txtfile(char *filename)
     }
 
     unmount_sd_card();
+}
+
+void read_bmp_to_array(char *filename, uint16_t *dest_array)
+{
+
+    // We mount the sd as we did for every other function until now
+    mount_sd_card();
+
+    // We locally set the file object and the bytes read variables.
+    FIL fil;
+    UINT br;
+
+    // We have a buffer for the header of the BMP file (the ones in windows and saved by Aseprite are 122 bytes long)
+    unsigned char header[122];
+
+    // Attempt to read from the BMP file
+    fr = f_open(&fil, filename, FA_READ);
+    if (fr != FR_OK)
+    {
+        gpio_put(25, 0);
+        printf("f_open(%s) error: %d\n", filename, fr);
+        unmount_sd_card();
+        return;
+    }
+
+    // Read the 122-byte header
+    f_read(&fil, header, 122, &br);
+
+    // Basic BMP validation (Check for 'BM' signature)
+    if (header[0] != 'B' || header[1] != 'M')
+    {
+        gpio_put(25, 0);
+        printf("Not a valid BMP file\n");
+        f_close(&fil);
+        unmount_sd_card();
+        return;
+    }
+
+    // Extract header values SAFELY (avoid pointer casting alignment issues)
+    uint32_t dataOffset = header[0x0A] | (header[0x0B] << 8) | (header[0x0C] << 16) | (header[0x0D] << 24);
+    int32_t width = *(int32_t *)&header[0x12]; // or use safe read macro
+    int32_t height = *(int32_t *)&header[0x16];
+    uint16_t bitsPerPixel = header[0x1C] | (header[0x1D] << 8); // Offset 0x1C in DIB header
+
+    // Calculate bytes per pixel and padded row size
+    uint8_t bytesPerPixel = bitsPerPixel / 8;
+    uint32_t unpaddedRowSize = width * bytesPerPixel;
+    uint32_t paddedRowSize = (unpaddedRowSize + 3) & ~3; // Round up to multiple of 4
+
+    unsigned char *rowBuffer = malloc(paddedRowSize);
+    if (rowBuffer == NULL)
+    {
+        printf("Failed to allocate row buffer (%d bytes)\n", paddedRowSize);
+        f_close(&fil);
+        unmount_sd_card();
+        return;
+    }
+
+    printf("BMP Debug: width=%d, height=%d, bitsPerPixel=%d, dataOffset=%lu\n",
+           width, height, bitsPerPixel, dataOffset);
+    printf("Calculated: bytesPerPixel=%d, paddedRowSize=%lu\n",
+           bytesPerPixel, paddedRowSize);
+    printf("First pixel raw: [%02X %02X %02X %02X]\n",
+           rowBuffer[0], rowBuffer[1], rowBuffer[2], rowBuffer[3]);
+
+    // Seek to pixel data
+    f_lseek(&fil, dataOffset);
+
+    // Read rows bottom-to-top (BMP stores images upside-down)
+    for (int y = height - 1; y >= 0; y--)
+    {
+        fr = f_read(&fil, rowBuffer, paddedRowSize, &br);
+        if (fr != FR_OK || br < paddedRowSize)
+            break;
+
+        for (int x = 0; x < width; x++)
+        {
+            uint8_t b, g, r;
+
+            if (bitsPerPixel == 32)
+            {
+                // BGRA format
+                r = rowBuffer[x * 4];
+                g = rowBuffer[x * 4 + 1];
+                b = rowBuffer[x * 4 + 2];
+                // alpha at [x*4+3] is ignored
+            }
+            else if (bitsPerPixel == 24)
+            {
+                // BGR format, no alpha
+                r = rowBuffer[x * 3];
+                g = rowBuffer[x * 3 + 1];
+                b = rowBuffer[x * 3 + 2];
+            }
+            else
+            {
+                printf("Unsupported bit depth: %d\n", bitsPerPixel);
+                free(rowBuffer);
+                f_close(&fil);
+                unmount_sd_card();
+                return;
+            }
+
+            // Convert RGB888 to RGB565
+            uint16_t rgb565 = (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3));
+            rgb565 = (rgb565 >> 8) | (rgb565 << 8);
+            dest_array[y * width + x] = rgb565;
+        }
+    }
+
+    free(rowBuffer);
+    rowBuffer = NULL;
+    f_close(&fil);
+    unmount_sd_card();
+    printf("BMP loaded successfully: %s\n", filename);
 }

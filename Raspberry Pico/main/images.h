@@ -3,7 +3,11 @@
 
 #include <stdint.h>
 
-extern const uint16_t background[];
-extern const uint16_t character[];
+// Example: 128x160 image (RGB565)
+#define IMAGE_WIDTH 128
+#define IMAGE_HEIGHT 160
+
+extern uint16_t background[];
+extern uint16_t character[];
 
 #endif // IMAGES_H

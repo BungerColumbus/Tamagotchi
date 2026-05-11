@@ -7,11 +7,20 @@
 #define ST7735_SWRESET 0x01 // Software Reset
 #define ST7735_SLPOUT 0x11  // Sleep Out
 #define ST7735_COLMOD 0x3A  // Colour Mode
-#define ST7735_MADCTL 0x36  // Memory Access Data Control
-#define ST7735_DISPON 0x29  // Display On
-#define ST7735_CASET 0x2A   // Column Address Set
-#define ST7735_RASET 0x2B   // Row Address Set
-#define ST7735_RAMWR 0x2C   // RAM Write
+
+#define ST7735_MADCTL 0x36 // Memory Access Data Control
+/*
+• 0x08 = Mirror X
+• 0x10 = Mirror Y
+• 0x20 = Swap X/Y (rotate 90°)
+• 0x40 = Refresh direction
+• 0x80 = RGB/BGR order
+*/
+
+#define ST7735_DISPON 0x29 // Display On
+#define ST7735_CASET 0x2A  // Column Address Set
+#define ST7735_RASET 0x2B  // Row Address Set
+#define ST7735_RAMWR 0x2C  // RAM Write
 
 // --- Pin Definitions ---
 // Note: These are defined here so other files in your project
@@ -49,6 +58,6 @@ void st7735_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
  *
  * @param image Pointer to a uint16_t array (RGB565 format)
  */
-void display_image(const uint16_t *image);
+void display_image(const uint16_t *image, uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y);
 
 #endif // ST7735_H

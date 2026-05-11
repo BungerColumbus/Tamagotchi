@@ -11,7 +11,7 @@
 
 void update(void)
 {
-    display_image(background);
+    display_image(background, 0, 0, TFT_WIDTH - 1, TFT_HEIGHT - 1);
     sleep_ms(100);
 }
 
@@ -34,6 +34,8 @@ int main()
 
     write_to_txtfile("read_from_file.txt", "This message will be read by the Pico\n");
     read_from_txtfile("read_from_file.txt");
+    read_bmp_to_array("background.bmp", background);
+
     st7735_init();
 
     while (true)
