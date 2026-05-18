@@ -3,17 +3,8 @@
 
 #include "ff.h"
 
-// --- Public Function Prototypes ---
-
-/**
- * @brief Initializes and mounts the SD card filesystem.
- * This function will panic and halt if mounting fails.
- */
 void mount_sd_card(void);
 
-/**
- * @brief Opens "test.txt", appends a line of text, and unmounts the card.
- */
 void write_to_txtfile(char *filename, char *text);
 
 void read_from_txtfile(char *filename);

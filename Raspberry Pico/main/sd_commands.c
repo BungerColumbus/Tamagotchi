@@ -7,9 +7,11 @@
 #include "ff.h"
 #include "f_util.h"
 
+// They are required, this how FATFS stuff works
 FATFS fs;
 FRESULT fr;
 
+// Mounting the SD card, it flushes before doing so, it also gives an error message if it fails :P
 void mount_sd_card(void)
 {
     puts("Mounting SD card...");
@@ -23,6 +25,7 @@ void mount_sd_card(void)
     }
 }
 
+// Un-mounting the SD card (and flushing after)
 void unmount_sd_card(void)
 {
 
@@ -33,6 +36,9 @@ void unmount_sd_card(void)
     fflush(stdout);
 }
 
+// FIL fil; fr = f_open(&fil, filename, FA_OPEN_APPEND | FA_WRITE); fr = f_close(&fil);
+// These are the only commands that matter, the other ones are to know if stuff fails
+// Also mounting and unmounting SD card
 void write_to_txtfile(char *filename, char *text)
 {
     mount_sd_card();
@@ -62,6 +68,7 @@ void write_to_txtfile(char *filename, char *text)
     unmount_sd_card();
 }
 
+// Same as in write except this time we use fr = f_open(&fil, filename, FA_READ); (WOW, so unique)
 void read_from_txtfile(char *filename)
 {
     mount_sd_card();
@@ -98,6 +105,15 @@ void read_from_txtfile(char *filename)
     unmount_sd_card();
 }
 
+// This is the more complex one
+/*
+    We have a BMP file that is 32 bit (this is what I used on my SD card)
+    The parameters are the name of the file we want to read and
+    in what array will we put the conversion of the BMP
+
+    https://en.wikipedia.org/wiki/BMP_file_format
+    This has all the information one needs in order to understand how to achieve this conversion
+*/
 void read_bmp_to_array(char *filename, uint16_t *dest_array)
 {
 
@@ -124,7 +140,7 @@ void read_bmp_to_array(char *filename, uint16_t *dest_array)
     // Read the 122-byte header
     f_read(&fil, header, 122, &br);
 
-    // Basic BMP validation (Check for 'BM' signature)
+    // Validate if it is truly BMP (Check for 'BM' signature)
     if (header[0] != 'B' || header[1] != 'M')
     {
         gpio_put(25, 0);
@@ -134,7 +150,7 @@ void read_bmp_to_array(char *filename, uint16_t *dest_array)
         return;
     }
 
-    // Extract header values SAFELY (avoid pointer casting alignment issues)
+    // Extracting the headers as safely as possible (It's a bit of an overkill what I did here)
     uint32_t dataOffset = header[0x0A] | (header[0x0B] << 8) | (header[0x0C] << 16) | (header[0x0D] << 24);
     int32_t width = *(int32_t *)&header[0x12]; // or use safe read macro
     int32_t height = *(int32_t *)&header[0x16];
@@ -145,6 +161,7 @@ void read_bmp_to_array(char *filename, uint16_t *dest_array)
     uint32_t unpaddedRowSize = width * bytesPerPixel;
     uint32_t paddedRowSize = (unpaddedRowSize + 3) & ~3; // Round up to multiple of 4
 
+    // My attempt at avoiding memory leaks start here, should learn how to use rust smh
     unsigned char *rowBuffer = malloc(paddedRowSize);
     if (rowBuffer == NULL)
     {
@@ -154,6 +171,7 @@ void read_bmp_to_array(char *filename, uint16_t *dest_array)
         return;
     }
 
+    // A bunch of stuff for debugging (was never too useful, might delete later)
     printf("BMP Debug: width=%d, height=%d, bitsPerPixel=%d, dataOffset=%lu\n",
            width, height, bitsPerPixel, dataOffset);
     printf("Calculated: bytesPerPixel=%d, paddedRowSize=%lu\n",
@@ -165,7 +183,7 @@ void read_bmp_to_array(char *filename, uint16_t *dest_array)
     f_lseek(&fil, dataOffset);
 
     // Read rows bottom-to-top (BMP stores images upside-down)
-    for (int y = height - 1; y >= 0; y--)
+    for (int y = 0; y < height; y++)
     {
         fr = f_read(&fil, rowBuffer, paddedRowSize, &br);
         if (fr != FR_OK || br < paddedRowSize)
@@ -181,7 +199,7 @@ void read_bmp_to_array(char *filename, uint16_t *dest_array)
                 r = rowBuffer[x * 4];
                 g = rowBuffer[x * 4 + 1];
                 b = rowBuffer[x * 4 + 2];
-                // alpha at [x*4+3] is ignored
+                // Alpha is going to be 0x0000 (the blackest of blacks), we will consider that colour the transparent colour we need
             }
             else if (bitsPerPixel == 24)
             {
@@ -200,14 +218,21 @@ void read_bmp_to_array(char *filename, uint16_t *dest_array)
             }
 
             // Convert RGB888 to RGB565
+            // I also thought it was a bit stupid how easy it is to convert, but apparently,
+            // One needs to only read the first 5 bits from the colour RED in RGB888 in order to obtain the RED of RGB565
             uint16_t rgb565 = (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3));
             rgb565 = (rgb565 >> 8) | (rgb565 << 8);
+
+            // Store it in our destination array
             dest_array[y * width + x] = rgb565;
         }
     }
 
+    // Here is where my attempt at avoiding memory leaks ends, is it good? I think it works (no errors until now).
     free(rowBuffer);
     rowBuffer = NULL;
+
+    // We did it! If everything went fine, We just loaded the BMP file and converted it properly :P
     f_close(&fil);
     unmount_sd_card();
     printf("BMP loaded successfully: %s\n", filename);

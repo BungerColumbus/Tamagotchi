@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-// --- ST7735 Commands ---
+// ST7735 commands
 #define ST7735_SWRESET 0x01 // Software Reset
 #define ST7735_SLPOUT 0x11  // Sleep Out
 #define ST7735_COLMOD 0x3A  // Colour Mode
@@ -22,21 +22,13 @@
 #define ST7735_RASET 0x2B  // Row Address Set
 #define ST7735_RAMWR 0x2C  // RAM Write
 
-// --- Pin Definitions ---
-// Note: These are defined here so other files in your project
-// can reference them if needed.
+// The pins of the screen!
 #define PIN_CS 5
 #define PIN_DC 4
 #define PIN_RST 6
 #define PIN_MOSI 3
 #define PIN_SCK 2
 #define PIN_BL 0
-
-// --- Display Size ---
-#define TFT_WIDTH 128
-#define TFT_HEIGHT 160
-
-// --- Public Function Prototypes ---
 
 /**
  * @brief Initializes the ST7735 display with default settings.
@@ -58,6 +50,17 @@ void st7735_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
  *
  * @param image Pointer to a uint16_t array (RGB565 format)
  */
-void display_image(const uint16_t *image, uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y);
+void display_buffer(void);
+
+/**
+ * @brief Puts the pixels on the screen buffer array, avoids transparency, achieves layering
+ *
+ * @param sprite Pointer to a uint16_t array (RGB565 format)
+ * @param width Sprite width
+ * @param height Sprite height
+ * @param start_x Where we start putting out sprite pixels on the buffer (horiontally)
+ * @param start_y Where we start putting out sprite pixels on the buffer (vertically)
+ */
+void draw_sprite_to_buffer(const uint16_t *sprite, int width, int height, int start_x, int start_y);
 
 #endif // ST7735_H

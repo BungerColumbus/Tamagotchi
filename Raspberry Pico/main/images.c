@@ -1,5 +1,8 @@
 #include <stdint.h>
 #include "images.h"
 
-uint16_t background[IMAGE_WIDTH * IMAGE_HEIGHT];
-uint16_t character[32 * 32];
+// The screen buffer that is what we actually display on the screen
+uint16_t screen_buffer[SCREEN_WIDTH * SCREEN_HEIGHT];
+// The active images which are what we will put on the screen buffer
+uint16_t active_background[SCREEN_WIDTH * SCREEN_HEIGHT];
+uint16_t active_character[32 * 32];

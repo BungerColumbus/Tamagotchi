@@ -33,10 +33,11 @@ project(main C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+# Referecing the library
 add_subdirectory(lib/fatfs_sd build)
 
 # Add executable. Default name is the project name, version 0.1
-
+# I am also adding the exec for all c files that I am going to run inside of the project.
 add_executable(main main.c images.c
                 hw_config.c
                 display_config.c
@@ -49,14 +50,15 @@ pico_set_program_version(main "0.1")
 pico_enable_stdio_uart(main 0)
 pico_enable_stdio_usb(main 1)
 
-# Add the standard library to the build
+# We are using hardware_spi, and the whole thing library from the no-OS-FatFS-SD-SDIO-SPI-RPi-Pico repo, so we need to link those
+# Oh an ofc there is also the pico_stdlib which is required for all Pico projects
 target_link_libraries(main
         pico_stdlib
         hardware_spi
         no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
         )
 
-# Add the standard include files to the build
+# All of this is inside a directory called main so ofc it must be included with everything else inside of it
 target_include_directories(main PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
