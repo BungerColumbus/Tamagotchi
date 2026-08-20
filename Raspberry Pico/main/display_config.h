@@ -22,13 +22,16 @@
 #define ST7735_RASET 0x2B  // Row Address Set
 #define ST7735_RAMWR 0x2C  // RAM Write
 
+#define X_OFFSET 1
+#define Y_OFFSET 2
+
 // The pins of the screen!
-#define PIN_CS 5
-#define PIN_DC 4
-#define PIN_RST 6
-#define PIN_MOSI 3
-#define PIN_SCK 2
-#define PIN_BL 0
+#define PIN_CS 13
+#define PIN_DC 8
+#define PIN_RST 9
+#define PIN_MOSI 11
+#define PIN_SCK 10
+#define PIN_BL 12
 
 /**
  * @brief Initializes the ST7735 display with default settings.

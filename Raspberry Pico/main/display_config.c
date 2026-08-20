@@ -9,7 +9,7 @@ static void st7735_write_command(uint8_t cmd)
 {
     gpio_put(PIN_DC, 0);               // The byte is an instruction (e.g., “write pixels,” “set column range”).
     gpio_put(PIN_CS, 0);               // The display listens to SPI.
-    spi_write_blocking(spi0, &cmd, 1); // Wait for buffer to be emptied
+    spi_write_blocking(spi1, &cmd, 1); // Wait for buffer to be emptied
     gpio_put(PIN_CS, 1);               // The display doesn't listen to SPI.
 }
 
@@ -18,7 +18,7 @@ static void st7735_write_data(const uint8_t *data, size_t len)
 {
     gpio_put(PIN_DC, 1);                 // The following bytes are data related to that command.
     gpio_put(PIN_CS, 0);                 // The display listens to SPI.
-    spi_write_blocking(spi0, data, len); // Wait for buffer to be emptied
+    spi_write_blocking(spi1, data, len); // Wait for buffer to be emptied
     gpio_put(PIN_CS, 1);                 // The display doesn't listen to SPI.
 }
 
@@ -26,8 +26,8 @@ static void st7735_write_data(const uint8_t *data, size_t len)
 void st7735_init(void)
 {
     // SPI0 init
-    spi_init(spi0, 10000000); // 10 MHz I think are good enough
-    spi_set_format(spi0, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    spi_init(spi1, 10000000); // 10 MHz I think are good enough
+    spi_set_format(spi1, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
     gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
     gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);
     // CS/DC/RST/BL pins
@@ -74,8 +74,11 @@ void st7735_init(void)
 
 // Setting the address for rows and columns and telling display... YOU WILL GET DATA!!!
 // I promise this is the last setup... unless?
+
 void st7735_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
 {
+    x0 += X_OFFSET; x1 += X_OFFSET;
+    y0 += Y_OFFSET; y1 += Y_OFFSET;
     // Setting the address for the rows
     st7735_write_command(ST7735_CASET);
     uint8_t caset_data[] = {x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF};
@@ -94,7 +97,7 @@ void st7735_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
 void display_buffer(void)
 {
     // Uses 160 for width, 128 for height
-    st7735_set_window(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
+    st7735_set_window(0, 0, SCREEN_WIDTH-1, SCREEN_HEIGHT-1);
 
     uint8_t *p = (uint8_t *)screen_buffer;
     size_t bytes = SCREEN_WIDTH * SCREEN_HEIGHT * 2; // 160 * 128 * 2 = 40,960 bytes
