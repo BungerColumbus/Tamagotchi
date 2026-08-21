@@ -40,7 +40,9 @@ add_executable(main main.c images.c
         hw_config.c
         display_config.c
         sd_commands.c
-        inputs.c)
+        inputs.c
+        rooms.c
+        )
 
 pico_set_program_name(main "main")
 pico_set_program_version(main "0.1")

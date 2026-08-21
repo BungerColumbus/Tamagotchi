@@ -114,7 +114,7 @@ void read_from_txtfile(char *filename)
     https://en.wikipedia.org/wiki/BMP_file_format
     This has all the information one needs in order to understand how to achieve this conversion
 */
-void read_bmp_to_array(char *filename, uint16_t *dest_array)
+void read_bmp_to_array(const char *filename, uint16_t *dest_array)
 {
 
     // We mount the sd as we did for every other function until now

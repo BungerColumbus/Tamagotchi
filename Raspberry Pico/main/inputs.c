@@ -2,9 +2,10 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "inputs.h"
+#include "entity.h"
 
-int offset_x = 0;
-int offset_y = 0;
+int global_x = 0;
+int global_y = 0;
 
 static inline bool button_down(uint pin)
 {
@@ -20,26 +21,11 @@ void inputs_init(void)
     }
 }
 
-void handle_input(void)
+void handle_input(Entity *e)
 {
-    if (button_down(BTN_UP))    
-    {
-        offset_y += 2;
-        printf("idle: %d %d %d %d\n", gpio_get(0), gpio_get(1), gpio_get(2), gpio_get(3));
-    }
-    if (button_down(BTN_DOWN))  
-    {
-        offset_y -= 2;
-        printf("idle: %d %d %d %d\n", gpio_get(0), gpio_get(1), gpio_get(2), gpio_get(3));
-    }
-    if (button_down(BTN_LEFT))  
-    {
-        offset_x -= 2;
-        printf("idle: %d %d %d %d\n", gpio_get(0), gpio_get(1), gpio_get(2), gpio_get(3));
-    }
-    if (button_down(BTN_RIGHT)) 
-    {
-        offset_x += 2;
-        printf("idle: %d %d %d %d\n", gpio_get(0), gpio_get(1), gpio_get(2), gpio_get(3));
-    }
+    printf("global_x: %d, global_y: %d\n", global_x, global_y);
+    if (button_down(BTN_UP)) e -> pos.y += 2;
+    if (button_down(BTN_DOWN)) e -> pos.y -= 2;
+    if (button_down(BTN_LEFT)) e -> pos.x -= 2;
+    if (button_down(BTN_RIGHT)) e -> pos.x += 2;
 }
